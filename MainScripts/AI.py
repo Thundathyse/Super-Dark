@@ -2,6 +2,7 @@ import math
 
 ss = .9
 sf = 1 - ss
+belief = []
 
 def initial(map):
     belief = [[0 for i in range(len(map))] for j in range(len(map[0]))] # INITIAL BELIEF
