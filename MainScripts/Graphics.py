@@ -1,5 +1,5 @@
 import pygame
-import constants
+from constants import *
 
 class Tile:
     def __init__(self, x, y, wi, hi, color):
@@ -8,13 +8,13 @@ class Tile:
         self.wi = wi
         self.hi = hi
         self.color = color
-        #self.animf = (self.x - 5, self.y - 5, self.wi + 10, self.hi + 10)
 
     def show(self, screen):
         coord = (self.x, self.y, self.wi, self.hi)
         pygame.draw.rect(screen, self.color, coord)
 
     def hovanim(self, screen):
-        animf = (self.x - 5, self.y - 5, self.wi + 10, self.hi + 10)
+        animf = (self.x - (self.wi/12), self.y - (self.hi/12), self.wi + (self.wi/12), self.hi + (self.hi/12))
+        pygame.draw.rect(screen, black, (self.x, self.y, self.wi, self.hi))
         pygame.draw.rect(screen, self.color, animf)
-        pygame.draw.rect(screen, black, (self.x, self.y, self.wi, self.hi), 3)
+        pygame.draw.rect(screen, black, animf, 3)

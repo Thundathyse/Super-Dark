@@ -4,8 +4,10 @@ from Graphics import Tile
 from utils import generate_map, locate, inner
 from AI import initial
 from UI import UIManager
+from Key import *
+from Units import *
 
-def on_button_pressed():
+def returnover():
     global dispin  # Use the global dispin variable
     if dispin:  # If currently displaying the inner grid
         print("Returning to the outer grid...")
@@ -17,9 +19,12 @@ def on_button_pressed():
 pygame.init()
 screen = pygame.display.set_mode((width, height))
 
+# Set up units
+
+
 # Set up screen
 ui_manager = UIManager((width, height))
-ui_manager.add_button("Press Me", (185, 200), (100, 50), on_button_pressed)
+ui_manager.add_button("", (185, 200), (100, 50), returnover)
 pygame.display.set_caption("FINE")
 
 # Clock
@@ -39,7 +44,7 @@ for i in range(len(map)):
     mapin.append(row)
 
 outer_tile_grid = [
-    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, rgb[map[i][j]]) for j in range(cols)]
+    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullrgb[map[i][j]]) for j in range(cols)]
     for i in range(rows) #DECLAN IS NOT ENTIRELY SURE HOW THIS WORKS
 ]
 
@@ -51,10 +56,16 @@ current_inner_grid = []
 
 # Set up font
 font = pygame.font.Font(None, 25)  # None uses the default font, 36 is the font size
+medfont = pygame.font.Font(None, 18)
 
 # Render text
 hov = "helo"
-hovtext = font.render(hov, True, (255, 255, 255)) # middle is antialias
+hovtext = font.render(hov, True, white) # middle is antialias
+title = font.render("Carrier Info", True, white)
+slot1 = medfont.render(active[0][0], True, white)
+slot2 = medfont.render(active[1][0], True, white)
+slot3 = medfont.render(active[2][0], True, white)
+
 
 def update_inner_grid(y, x):
     """Generate the inner grid for the selected outer cell based on its value."""
@@ -115,9 +126,11 @@ while runner:
                 tile = outer_tile_grid[i][j]
                 if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
                     hov = f"({j}, {abs(i - 3)})"
+                    tile.color = rgb[map[i][j]]
                     tile.hovanim(screen)
-                    pygame.draw.rect(screen, black, (tile.x -5, tile.y-5, tile.wi+10, tile.hi+10), 3)
                     pygame.draw.rect(screen, black, (mox, moy - 25, 60, 30))
+                else:
+                    tile.color = dullrgb[map[i][j]]
 
 
     else:
@@ -142,6 +155,8 @@ while runner:
     # Update and Draw UI
     ui_manager.update(time_delta)
     ui_manager.draw(screen)
+
+    Carrier(screen, title, slot1, slot2, slot3)
 
     # Update the display
     pygame.display.flip()
