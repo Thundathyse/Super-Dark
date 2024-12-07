@@ -15,16 +15,30 @@ def returnover():
     else:
         print("Button pressed but dispin is False.")
 
+#TROOP DROP SYSTEM
+pick = [False, False, False]
+
+def setonly(boolarray, index):
+    for i in range(len(boolarray)):
+        if boolarray[i]:
+            boolarray[i] = False
+    boolarray[index] = True
+
+def picks(slot):
+    setonly(pick, slot)
+
+
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((width, height))
 
-# Set up units
-
-
 # Set up screen
-ui_manager = UIManager((width, height))
-ui_manager.add_button("", (185, 200), (100, 50), returnover)
+inner_ui_manager = UIManager((width, height))
+main_ui_manager = UIManager((width, height))
+inner_ui_manager.add_button("Back", (185, 200), (100, 50), returnover)
+main_ui_manager.add_button("Select", (750, 270), (50,20), picks(0))
+main_ui_manager.add_button("Select", (750, 320), (50,20), picks(1))
+main_ui_manager.add_button("Select", (750, 370), (50,20), picks(2))
 pygame.display.set_caption("FINE")
 
 # Clock
@@ -106,7 +120,8 @@ while runner:
                             dispin = True
                             update_inner_grid(seltily, seltilx)
                             break
-        ui_manager.process_events(event)
+        inner_ui_manager.process_events(event)
+        main_ui_manager.process_events(event)
 
     # Clear screen
     screen.fill(gray)
@@ -117,6 +132,7 @@ while runner:
 
     if not dispin:
         # Display outer grid
+        pygame.draw.rect(screen, black, (180, 495, 110, 30))
         for row in outer_tile_grid:
             for tile in row:
                 tile.show(screen)
@@ -128,13 +144,13 @@ while runner:
                     hov = f"({j}, {abs(i - 3)})"
                     tile.color = rgb[map[i][j]]
                     tile.hovanim(screen)
-                    pygame.draw.rect(screen, black, (mox, moy - 25, 60, 30))
                 else:
                     tile.color = dullrgb[map[i][j]]
 
 
     else:
         # Display current inner grid
+        pygame.draw.rect(screen, black, (180, 495, 110, 30))
         for row in current_inner_grid:
             for tile in row:
                 tile.show(screen)
@@ -145,18 +161,22 @@ while runner:
                 if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
                     hov = f"IN ({seltilx},{abs(seltily -3)}),({j}, {abs(i - 2)})"
                     tile.hovanim(screen)
-                    pygame.draw.rect(screen, black, (mox, moy - 25, 120, 30))
+        # Update and Draw UI
+        inner_ui_manager.update(time_delta)
+        inner_ui_manager.draw(screen)
 
     # Hover Text
     if hov:  # Only render if hov is not empty
         hovtext = font.render(hov, True, white)
-        screen.blit(hovtext, (mox + 10, moy - 20))
-
-    # Update and Draw UI
-    ui_manager.update(time_delta)
-    ui_manager.draw(screen)
+        if not dispin:
+            screen.blit(hovtext, (210, 500))
+        else:
+            screen.blit(hovtext, (185, 500))
 
     Carrier(screen, title, slot1, slot2, slot3)
+
+    main_ui_manager.update(time_delta)
+    main_ui_manager.draw(screen)
 
     # Update the display
     pygame.display.flip()
