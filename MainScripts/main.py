@@ -1,6 +1,6 @@
 import pygame
 from constants import *
-from tile import Tile
+from Graphics import Tile
 from utils import generate_map, locate, inner
 from AI import initial
 from UI import UIManager
@@ -98,7 +98,7 @@ while runner:
         ui_manager.process_events(event)
 
     # Clear screen
-    screen.fill(white)
+    screen.fill(gray)
 
     # Draw UI
     pygame.draw.rect(screen, black, (290, 190, 420, 420))
@@ -115,8 +115,11 @@ while runner:
                 tile = outer_tile_grid[i][j]
                 if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
                     hov = f"({j}, {abs(i - 3)})"
-                    pygame.draw.rect(screen, black, (tile.x, tile.y, tile.wi, tile.hi), 3)
+                    tile.hovanim(screen)
+                    pygame.draw.rect(screen, black, (tile.x -5, tile.y-5, tile.wi+10, tile.hi+10), 3)
                     pygame.draw.rect(screen, black, (mox, moy - 25, 60, 30))
+
+
     else:
         # Display current inner grid
         for row in current_inner_grid:
@@ -128,7 +131,7 @@ while runner:
                 tile = current_inner_grid[i][j]
                 if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
                     hov = f"IN ({seltilx},{abs(seltily -3)}),({j}, {abs(i - 2)})"
-                    pygame.draw.rect(screen, black, (tile.x, tile.y, tile.wi, tile.hi), 3)
+                    tile.hovanim(screen)
                     pygame.draw.rect(screen, black, (mox, moy - 25, 120, 30))
 
     # Hover Text
