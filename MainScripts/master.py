@@ -50,6 +50,11 @@ pygame.display.set_caption("FINE")
 # Clock
 clock = pygame.time.Clock()
 
+
+# Set up font
+font = pygame.font.Font(None, 25)  # None uses the default font, 36 is the font size
+medfont = pygame.font.Font(None, 18)
+
 # Generate map and tiles
 map = generate_map()
 belief = initial(map)
@@ -63,8 +68,10 @@ for i in range(len(map)):
         row.append(inner(map[i][j]))
     mapin.append(row)
 
+mean = font.render("Outer", True, white)
+
 outer_tile_grid = [
-    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullrgb[map[i][j]]) for j in range(cols)]
+    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullrgb[map[i][j]], mean) for j in range(cols)]
     for i in range(rows) #DECLAN IS NOT ENTIRELY SURE HOW THIS WORKS
 ]
 
@@ -75,21 +82,19 @@ dispin = False
 seltily, seltilx = 0, 0
 current_inner_grid = []
 
-# Set up font
-font = pygame.font.Font(None, 25)  # None uses the default font, 36 is the font size
-medfont = pygame.font.Font(None, 18)
-
 # Render text
 hov = "helo"
 hovtext = font.render(hov, True, white) # middle is antialias
 title = font.render("Carrier Info", True, white)
+
+inmean = font.render("Inner", True, white)
 
 
 def update_inner_grid(y, x):
     """Generate the inner grid for the selected outer cell based on its value."""
     global current_inner_grid
     inner_data = mapin[y][x]  # Retrieve the inner grid data for the selected cell
-    current_inner_grid = [[Tile((j * insize) + 300,(i * insize) + 200,insize,insize,woyp[inner_data[i][j]])for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
+    current_inner_grid = [[Tile((j * insize) + 300,(i * insize) + 200,insize,insize,woyp[inner_data[i][j]], inmean)for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
 
 print(mapin)
 
