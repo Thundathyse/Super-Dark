@@ -18,6 +18,12 @@ def returnover():
 #TROOP DROP SYSTEM
 pick = [False, False, False]
 
+def droptroop(num, outy, outx, iny, inx):
+    active[num][1] -= 1
+    print(active[num][1])
+    pick[num] = False
+    mapin[outy][outx][iny][inx] = 3
+
 def setonly(boolarray, index):
     for i in range(len(boolarray)):
         if boolarray[i]:
@@ -36,9 +42,9 @@ screen = pygame.display.set_mode((width, height))
 inner_ui_manager = UIManager((width, height))
 main_ui_manager = UIManager((width, height))
 inner_ui_manager.add_button("Back", (185, 200), (100, 50), returnover)
-main_ui_manager.add_button("Select", (750, 270), (50,20), picks(0))
-main_ui_manager.add_button("Select", (750, 320), (50,20), picks(1))
-main_ui_manager.add_button("Select", (750, 370), (50,20), picks(2))
+main_ui_manager.add_button("Select", (750, 270), (50,20), lambda: picks(0)) # lambda Function: This allows you to pass a function that will be called later (when the button is clicked) instead of immediately calling picks during the button's creation.
+main_ui_manager.add_button("Select", (750, 320), (50,20), lambda: picks(1))
+main_ui_manager.add_button("Select", (750, 370), (50,20), lambda: picks(2))
 pygame.display.set_caption("FINE")
 
 # Clock
@@ -62,6 +68,7 @@ outer_tile_grid = [
     for i in range(rows) #DECLAN IS NOT ENTIRELY SURE HOW THIS WORKS
 ]
 
+
 # State variables
 runner = True
 dispin = False
@@ -76,28 +83,15 @@ medfont = pygame.font.Font(None, 18)
 hov = "helo"
 hovtext = font.render(hov, True, white) # middle is antialias
 title = font.render("Carrier Info", True, white)
-slot1 = medfont.render(active[0][0], True, white)
-slot2 = medfont.render(active[1][0], True, white)
-slot3 = medfont.render(active[2][0], True, white)
 
 
 def update_inner_grid(y, x):
     """Generate the inner grid for the selected outer cell based on its value."""
     global current_inner_grid
     inner_data = mapin[y][x]  # Retrieve the inner grid data for the selected cell
-    current_inner_grid = [
-        [
-            Tile(
-                (j * insize) + 300,
-                (i * insize) + 200,
-                insize,
-                insize,
-                woy[inner_data[i][j]]  # Use the specific value for the tile color
-            )
-            for j in range(len(inner_data[0]))
-        ]
-        for i in range(len(inner_data))
-    ]
+    current_inner_grid = [[Tile((j * insize) + 300,(i * insize) + 200,insize,insize,woyp[inner_data[i][j]])for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
+
+print(mapin)
 
 # Main loop
 while runner:
@@ -120,6 +114,27 @@ while runner:
                             dispin = True
                             update_inner_grid(seltily, seltilx)
                             break
+            else:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left mouse button
+                    if dispin:  # Only check inner cells if we're in the inner grid view
+                        for i in range(len(current_inner_grid)):
+                            for j in range(len(current_inner_grid[i])):
+                                tile = current_inner_grid[i][j]
+                                if tile.x <= event.pos[0] <= tile.x + tile.wi and tile.y <= event.pos[
+                                    1] <= tile.y + tile.hi:
+                                    print(f"Clicked inner cell at ({i}, {j})")
+                                    curs = -1
+                                    for h in range(len(pick)):
+                                        if pick[h]:
+                                            curs = h
+                                            print("curs ", curs)
+                                    if curs !=  -1 and active[curs][1] > 0:
+                                        print(event.pos[0])
+                                        droptroop(curs, seltily, seltilx, i, j)
+                                        update_inner_grid(seltily, seltilx)
+                                    else:
+                                        print("stick,")
+                                    break
         inner_ui_manager.process_events(event)
         main_ui_manager.process_events(event)
 
@@ -172,6 +187,10 @@ while runner:
             screen.blit(hovtext, (210, 500))
         else:
             screen.blit(hovtext, (185, 500))
+
+    slot1 = medfont.render((active[0][0] + " (" + str(active[0][1]) + ")"), True, white)
+    slot2 = medfont.render((active[1][0] + " (" + str(active[1][1]) + ")"), True, white)
+    slot3 = medfont.render((active[2][0] + " (" + str(active[2][1]) + ")"), True, white)
 
     Carrier(screen, title, slot1, slot2, slot3)
 
