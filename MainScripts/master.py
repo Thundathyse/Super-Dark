@@ -22,7 +22,7 @@ def droptroop(num, outy, outx, iny, inx):
     active[num][1] -= 1
     print(active[num][1])
     pick[num] = False
-    mapin[outy][outx][iny][inx] = 3
+    mapin[outy][outx][iny][inx][0] = 3
 
 def setonly(boolarray, index):
     for i in range(len(boolarray)):
@@ -55,6 +55,12 @@ clock = pygame.time.Clock()
 font = pygame.font.Font(None, 25)  # None uses the default font, 36 is the font size
 medfont = pygame.font.Font(None, 18)
 
+
+def createlabel(cu, y, x):
+
+    return font.render(cu[y][x][1], True, black)
+
+
 # Generate map and tiles
 map = generate_map()
 belief = initial(map)
@@ -68,10 +74,8 @@ for i in range(len(map)):
         row.append(inner(map[i][j]))
     mapin.append(row)
 
-mean = font.render("Outer", True, white)
-
 outer_tile_grid = [
-    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullrgb[map[i][j]], mean) for j in range(cols)]
+    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullryg[map[i][j][0]], createlabel(map, i, j)) for j in range(cols)]
     for i in range(rows) #DECLAN IS NOT ENTIRELY SURE HOW THIS WORKS
 ]
 
@@ -87,16 +91,11 @@ hov = "helo"
 hovtext = font.render(hov, True, white) # middle is antialias
 title = font.render("Carrier Info", True, white)
 
-inmean = font.render("Inner", True, white)
-
-
 def update_inner_grid(y, x):
     """Generate the inner grid for the selected outer cell based on its value."""
     global current_inner_grid
     inner_data = mapin[y][x]  # Retrieve the inner grid data for the selected cell
-    current_inner_grid = [[Tile((j * insize) + 300,(i * insize) + 200,insize,insize,woyp[inner_data[i][j]], inmean)for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
-
-print(mapin)
+    current_inner_grid = [[Tile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j)) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
 
 # Main loop
 while runner:
@@ -162,10 +161,10 @@ while runner:
                 tile = outer_tile_grid[i][j]
                 if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
                     hov = f"({j}, {abs(i - 3)})"
-                    tile.color = rgb[map[i][j]]
+                    tile.color = ryg[map[i][j][0]]
                     tile.hovanim(screen)
                 else:
-                    tile.color = dullrgb[map[i][j]]
+                    tile.color = dullryg[map[i][j][0]]
 
 
     else:

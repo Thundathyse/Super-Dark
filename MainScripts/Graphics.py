@@ -20,3 +20,4 @@ class Tile:
         pygame.draw.rect(screen, black, (self.x, self.y, self.wi, self.hi))
         pygame.draw.rect(screen, self.color, animf)
         pygame.draw.rect(screen, black, animf, 3)
+        screen.blit(self.mean, (self.x - (self.wi/12), self.y - (self.hi/12)))
