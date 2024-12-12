@@ -1,6 +1,6 @@
 import pygame
 from constants import *
-from Graphics import Tile
+from Graphics import Tile, inTile
 from utils import generate_map, locate, inner
 from AI import initial
 from UI import UIManager
@@ -18,6 +18,37 @@ def returnover():
 #TROOP DROP SYSTEM
 pick = [False, False, False]
 
+bugdict = {
+    0: "Resources/NONE.png",
+    1: "Resources/Bugs/LBl.png",
+    2: "Resources/Bugs/LBg.png",
+    3: "Resources/Bugs/LBp.png",
+    4: "Resources/Bugs/LBb.png",
+    5: "Resources/Bugs/QB.png"
+}
+
+fdict = {
+    0: "Resources/NONE.png",
+    1: "Resources/Friendlies/Infantry.png",
+    2: "Resources/Friendlies/Mech.png",
+    3: "Resources/Friendlies/Rover.png",
+}
+
+bsprite = []
+
+for i in range(len(bugdict)):
+    bsprite.append(1)
+    bsprite[i] = pygame.image.load(bugdict.get(i))
+    bsprite[i] = pygame.transform.scale(bsprite[i], (50, 50))
+
+fsprite = []
+
+for i in range(len(fdict)):
+    fsprite.append(1)
+    fsprite[i] = pygame.image.load(fdict.get(i))
+    fsprite[i] = pygame.transform.scale(fsprite[i], (50, 50))
+
+
 def droptroop(num, outy, outx, iny, inx):
     active[num][1] -= 1
     print(active[num][1])
@@ -33,6 +64,8 @@ def setonly(boolarray, index):
 def picks(slot):
     setonly(pick, slot)
 
+def pickbug(cu, y, x):
+    return font.render(cu[y][x][1], True, black)
 
 # Initialize Pygame
 pygame.init()
@@ -54,10 +87,10 @@ clock = pygame.time.Clock()
 # Set up font
 font = pygame.font.Font(None, 25)  # None uses the default font, 36 is the font size
 medfont = pygame.font.Font(None, 18)
+keyt = medfont.render("Scanner Detecting:", True, white)
 
 
 def createlabel(cu, y, x):
-
     return font.render(cu[y][x][1], True, black)
 
 
@@ -95,12 +128,13 @@ def update_inner_grid(y, x):
     """Generate the inner grid for the selected outer cell based on its value."""
     global current_inner_grid
     inner_data = mapin[y][x]  # Retrieve the inner grid data for the selected cell
-    current_inner_grid = [[Tile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j)) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
+    current_inner_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j), bsprite[inner_data[i][j][0]],fsprite[inner_data[i][j][0]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))] # TEMPORARY, for show with the friendly
 
 # Main loop
 while runner:
     time_delta = clock.tick(60) / 1000.0  # Seconds passed since the last frame
     mox, moy = pygame.mouse.get_pos()
+
 
     hov = ""
 
@@ -144,6 +178,9 @@ while runner:
 
     # Clear screen
     screen.fill(gray)
+
+    # Draw key
+    Key(screen, keyt)
 
     # Draw UI
     pygame.draw.rect(screen, black, (290, 190, 420, 420))

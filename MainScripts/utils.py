@@ -33,7 +33,6 @@ def generate_map():
             value.append(outthreatlevel.get(value[0]))
             row.append(value)
         mapper.append(row)
-
     return mapper
 
 def locate(map):
@@ -55,7 +54,6 @@ def lowtrun():
             else:
                 value.append(random.randint(1, 2))
             value.append(inthreatlevel.get(value[0]))
-            print(value)
             row.append(value)
         inmap.append(row)
     return inmap
@@ -75,7 +73,6 @@ def medtrun():
             else:
                 value.append(random.randint(0, 2))
             value.append(inthreatlevel.get(value[0]))
-            print(value)
             row.append(value)
         inmap.append(row)
     return inmap
@@ -95,7 +92,6 @@ def hightrun():
             else:
                 value.append(random.randint(1, 2))
             value.append(inthreatlevel.get(value[0]))
-            print(value)
             row.append(value)
         inmap.append(row)
     return inmap
