@@ -19,13 +19,23 @@ def Carrier(screen, title, s1, s2, s3):
     screen.blit(s2, (742, 303))
     screen.blit(s3, (742, 353))
 
-def Key(screen, title):
-    # General shape of the key for the carrier
-    pygame.draw.rect(screen, black, (300, 610, 400, 100))
+def Key(screen, title, titlet):
+    # General shape of the key for the key
+    pygame.draw.rect(screen, black, (300, 610, 270, 130))
 
     #Slot
-    pygame.draw.rect(screen, white, (450, 610, 100, 80))
+    pygame.draw.rect(screen, white, (310, 640, 100, 80))
+    pygame.draw.rect(screen, white, (450, 640, 100, 80))
+
 
     #Text
-    screen.blit(title, (310, 650))
+    screen.blit(title, (310, 615))
+    screen.blit(titlet, (450, 615))
+
+def turnBanner(screen, turn, nom):
+    # General shape of the key for the key
+    pygame.draw.rect(screen, black, (300, 100, 400, 30))
+    #Text
+    screen.blit(turn, (310, 105))
+    screen.blit(nom, (470, 105))
 

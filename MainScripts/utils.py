@@ -49,11 +49,12 @@ def lowtrun():
             value = []
             if count < 8:
                 value.append(random.randint(0, 2))
-                if value[0] == 0:
+                if value[0] == 1:
                     count += 1
             else:
-                value.append(random.randint(1, 2))
+                value.append(random.randint(0, 1))
             value.append(inthreatlevel.get(value[0]))
+            value.append(0)
             row.append(value)
         inmap.append(row)
     return inmap
@@ -73,6 +74,7 @@ def medtrun():
             else:
                 value.append(random.randint(0, 2))
             value.append(inthreatlevel.get(value[0]))
+            value.append(0)
             row.append(value)
         inmap.append(row)
     return inmap
@@ -92,6 +94,7 @@ def hightrun():
             else:
                 value.append(random.randint(1, 2))
             value.append(inthreatlevel.get(value[0]))
+            value.append(0)
             row.append(value)
         inmap.append(row)
     return inmap

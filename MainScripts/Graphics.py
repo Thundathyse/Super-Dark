@@ -44,6 +44,6 @@ class inTile:
         pygame.draw.rect(screen, self.color, animf)
         pygame.draw.rect(screen, black, animf, 3)
         screen.blit(self.mean, (self.x - (self.wi/12) + 5, self.y - (self.hi/12) + 5))
-        screen.blit(self.bsprite,(473, 620))
-        screen.blit(self.fsprite,(500, 620))
+        screen.blit(self.bsprite,(330, 650))
+        screen.blit(self.fsprite,(480, 650))
         

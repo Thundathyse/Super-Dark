@@ -1,7 +1,7 @@
 master = [
-    ["Infantry", 1, 10, 10],
-    ["Mech", 1, 10, 10],
-    ["Rover", 1, 10, 10]
+    ["Infantry", 1, 1, 10],
+    ["Mech", 2, 1, 10],
+    ["Rover", 3, 1, 10]
     ]
 
 own = []

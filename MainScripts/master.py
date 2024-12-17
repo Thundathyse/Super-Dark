@@ -48,12 +48,27 @@ for i in range(len(fdict)):
     fsprite[i] = pygame.image.load(fdict.get(i))
     fsprite[i] = pygame.transform.scale(fsprite[i], (50, 50))
 
+def togTurn(faction, moves):
+    if moves > 0:
+        moves -= 1
+        print("nom" , moves)
+    else:
+        if faction == 0:
+            faction = 1
+        else:
+            faction = 0
+
+
 
 def droptroop(num, outy, outx, iny, inx):
-    active[num][1] -= 1
-    print(active[num][1])
-    pick[num] = False
-    mapin[outy][outx][iny][inx][0] = 3
+    if (pick[num]) and active[num][2] > 0:
+        active[num][2] -= 1
+        print(active[num][1])
+        pick[num] = False
+        mapin[outy][outx][iny][inx][2] = active[num][1]
+    else:
+        print("No unit")
+    togTurn(tn,nom)
 
 def setonly(boolarray, index):
     for i in range(len(boolarray)):
@@ -88,6 +103,7 @@ clock = pygame.time.Clock()
 font = pygame.font.Font(None, 25)  # None uses the default font, 36 is the font size
 medfont = pygame.font.Font(None, 18)
 keyt = medfont.render("Scanner Detecting:", True, white)
+keytt = medfont.render("Dropped Unit:", True, white)
 
 
 def createlabel(cu, y, x):
@@ -114,6 +130,8 @@ outer_tile_grid = [
 
 
 # State variables
+nom = 1
+tn = 1
 runner = True
 dispin = False
 seltily, seltilx = 0, 0
@@ -128,13 +146,18 @@ def update_inner_grid(y, x):
     """Generate the inner grid for the selected outer cell based on its value."""
     global current_inner_grid
     inner_data = mapin[y][x]  # Retrieve the inner grid data for the selected cell
-    current_inner_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j), bsprite[inner_data[i][j][0]],fsprite[inner_data[i][j][0]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))] # TEMPORARY, for show with the friendly
+    current_inner_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j), bsprite[inner_data[i][j][0]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))] # TEMPORARY, for show with the friendly
+
+#OVERWORLD STAGES
+freechoose = True
+chosen = [0,0]
+
+
 
 # Main loop
 while runner:
     time_delta = clock.tick(60) / 1000.0  # Seconds passed since the last frame
     mox, moy = pygame.mouse.get_pos()
-
 
     hov = ""
 
@@ -142,14 +165,16 @@ while runner:
         if event.type == pygame.QUIT:
             runner = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left mouse button
-            if not dispin:
+            if not dispin and freechoose:
                 # Check if a cell on the outer grid is clicked
                 for i in range(len(outer_tile_grid)):
                     for j in range(len(outer_tile_grid[i])):
                         tile = outer_tile_grid[i][j]
                         if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
                             seltily, seltilx = i, j
+                            chosen[0],chosen[1] = i,j
                             dispin = True
+                            freechoose = False
                             update_inner_grid(seltily, seltilx)
                             break
             else:
@@ -170,8 +195,6 @@ while runner:
                                         print(event.pos[0])
                                         droptroop(curs, seltily, seltilx, i, j)
                                         update_inner_grid(seltily, seltilx)
-                                    else:
-                                        print("stick,")
                                     break
         inner_ui_manager.process_events(event)
         main_ui_manager.process_events(event)
@@ -180,7 +203,7 @@ while runner:
     screen.fill(gray)
 
     # Draw key
-    Key(screen, keyt)
+    Key(screen, keyt, keytt)
 
     # Draw UI
     pygame.draw.rect(screen, black, (290, 190, 420, 420))
@@ -217,9 +240,10 @@ while runner:
                 if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
                     hov = f"IN ({seltilx},{abs(seltily -3)}),({j}, {abs(i - 2)})"
                     tile.hovanim(screen)
-        # Update and Draw UI
-        inner_ui_manager.update(time_delta)
-        inner_ui_manager.draw(screen)
+        if freechoose:
+            # Update and Draw UI
+            inner_ui_manager.update(time_delta)
+            inner_ui_manager.draw(screen)
 
     # Hover Text
     if hov:  # Only render if hov is not empty
@@ -229,10 +253,16 @@ while runner:
         else:
             screen.blit(hovtext, (185, 500))
 
-    slot1 = medfont.render((active[0][0] + " (" + str(active[0][1]) + ")"), True, white)
-    slot2 = medfont.render((active[1][0] + " (" + str(active[1][1]) + ")"), True, white)
-    slot3 = medfont.render((active[2][0] + " (" + str(active[2][1]) + ")"), True, white)
+    slot1 = medfont.render((active[0][0] + " (" + str(active[0][2]) + ")"), True, white)
+    slot2 = medfont.render((active[1][0] + " (" + str(active[1][2]) + ")"), True, white)
+    slot3 = medfont.render((active[2][0] + " (" + str(active[2][2]) + ")"), True, white)
 
+    # Turn display
+    wt = ["Enemies'", "Friendlies'"]
+    turn = font.render((wt[tn] + " turn:"), True, white)
+    nomt = font.render(("Moves " + str(nom)), True, white)
+
+    turnBanner(screen, turn, nomt)
     Carrier(screen, title, slot1, slot2, slot3)
 
     main_ui_manager.update(time_delta)
