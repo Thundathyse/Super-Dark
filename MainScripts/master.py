@@ -1,8 +1,11 @@
 import pygame
+from pygame import RESIZABLE
+
 from constants import *
+from MoveLogic import *
 from Graphics import Tile, inTile
-from utils import generate_map, locate, inner
-from AI import initial
+from utils import *
+from AI import *
 from UI import UIManager
 from Key import *
 from Units import *
@@ -10,10 +13,66 @@ from Units import *
 def returnover():
     global dispin  # Use the global dispin variable
     if dispin:  # If currently displaying the inner grid
-        print("Returning to the outer grid...")
         dispin = False  # Return to the outer grid
     else:
-        print("Button pressed but dispin is False.")
+        print("no need")
+
+def switchview():
+    global view
+    if view[0]:
+        view[0] = False
+        view[1] = True
+    elif view[1]:
+        view[1] = False
+        view[2] = True
+    elif view[2]:
+        view[2] = False
+        view[0] = True
+
+def empty(x,y):
+    return [[0 for _ in range(x)] for _ in range(y)]
+
+def provide(gridy, gridx):
+    li = ow(gridy, gridx)
+    loc, tloc, toploc = mapin[gridy][gridx], thermapin[gridy][gridx], toppin[gridy][gridx]
+    for i in range(len(li)):
+        blif = initial(loc)
+        print("Initial belief map ", blif, ". \n----")
+        nblif = (detect(loc,loc[li[i][0]][li[i][1]][0], blif))
+        print("Post Baye's motion belief map ", nblif, ". \n----")
+        if moves > 1:
+            tnblif = (thermdetect(tloc,tloc[li[i][0]][li[i][1]][0], blif))
+            print("Post Baye's thermal belief map ", nblif, ". \n----")
+            if moves > 2:
+                topnblif = (topdetect(toploc,toploc[li[i][0]][li[i][1]][0], blif))
+                print("Post Baye's topographical belief map ", nblif, ". \n----")
+        tnblif,topnblif = empty(3,3),empty(3,3)
+
+        fina = (combo(nblif, tnblif, topnblif))
+        print("Post combination belief map ", fina, ". \n----")
+        allunits[gridy][gridx][li[i][0]][li[i][1]].upgrid(fina)
+    Turn(moves)
+
+
+def possibleread(outy, outx, iny, inx):
+    if allunits[outy][outx][iny][inx] != [0]:
+        if not allunits[outy][outx][iny][inx].h:
+            return "pos. is uncertain"
+        else:
+            return "(" + str(allunits[outy][outx][iny][inx].bx) + "," + str(abs(allunits[outy][outx][iny][inx].by - 2)) + ")"
+    else:
+        return ""
+
+
+def ow(x,y):#where troop
+    grid = mapin[x][y]
+    lotl = []#list of troop locations
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            if grid[i][j][2] != 0:
+                lotl.append([i,j])
+    print("List of motion troop locations " , lotl, ". In the inner grid ", y, ", ",x)
+    return lotl
 
 #TROOP DROP SYSTEM
 pick = [False, False, False]
@@ -48,27 +107,47 @@ for i in range(len(fdict)):
     fsprite[i] = pygame.image.load(fdict.get(i))
     fsprite[i] = pygame.transform.scale(fsprite[i], (50, 50))
 
-def togTurn(faction, moves):
+def Turn(val):
+    global moves, faction
     if moves > 0:
-        moves -= 1
-        print("nom" , moves)
+        moves -= val
+    if moves <= 0:
+        faction = toggle(faction)
+
+def toggle(ooto):
+    if ooto == 0:
+        ooto = 1
     else:
-        if faction == 0:
-            faction = 1
-        else:
-            faction = 0
+        ooto = 0
+    return ooto
 
+def direct(val):
+    lt = ow(seltily, seltilx)
+    for u in range(len(lt)):
+        allunits[seltily][seltilx][lt[u][0]][lt[u][1]].belmap = movement(mapin[seltily][seltilx], allunits[seltily][seltilx][lt[u][0]][lt[u][1]].sp, val)
+        nloc = truemove(allunits[seltily][seltilx][lt[u][0]][lt[u][1]].sp, val, [lt[u][0], lt[u][1]])
+        mapin[seltily][seltilx][nloc[0]][nloc[1]][2] = allunits[seltily][seltilx][lt[u][0]][lt[u][1]].ind
+        mapin[seltily][seltilx][lt[u][0]][lt[u][1]][2] = 0
+        allunits[seltily][seltilx][nloc[0]][nloc[1]] = allunits[seltily][seltilx][lt[u][0]][lt[u][1]]
+        allunits[seltily][seltilx][lt[u][0]][lt[u][1]] = [0]
+        update_inner_grid(seltily,seltilx)
+        print(ow(seltily, seltilx))
+    Turn(2)
 
+allunits = emp(4)
+for i in range(len(allunits)):
+    for j in range(len(allunits[i])):
+        allunits[i][j] = emp(3)
 
-def droptroop(num, outy, outx, iny, inx):
-    if (pick[num]) and active[num][2] > 0:
+def droptroop(num, outy, outx, iny, inx): #w means "whose turn?"
+    if (pick[num]) and active[num][2] > 0 and mapin[outy][outx][iny][inx][2] == 0:
         active[num][2] -= 1
-        print(active[num][1])
         pick[num] = False
         mapin[outy][outx][iny][inx][2] = active[num][1]
+        Turn(1)
+        allunits[outy][outx][iny][inx] = (brain(outx, outy, -1, -1, False, [0], num + 1))
     else:
-        print("No unit")
-    togTurn(tn,nom)
+        print("No")
 
 def setonly(boolarray, index):
     for i in range(len(boolarray)):
@@ -84,15 +163,21 @@ def pickbug(cu, y, x):
 
 # Initialize Pygame
 pygame.init()
-screen = pygame.display.set_mode((width, height))
+screen = pygame.display.set_mode((width, height),RESIZABLE)
 
 # Set up screen
 inner_ui_manager = UIManager((width, height))
 main_ui_manager = UIManager((width, height))
 inner_ui_manager.add_button("Back", (185, 200), (100, 50), returnover)
+inner_ui_manager.add_button("View", (185, 260), (100, 50), switchview)
+inner_ui_manager.add_button("North", (210, 320), (45, 30), lambda: direct([1,0]))
+inner_ui_manager.add_button("West", (185, 350), (40, 30), lambda: direct([0,-1]))
+inner_ui_manager.add_button("South", (210, 380), (45, 30), lambda: direct([-1,0]))
+inner_ui_manager.add_button("East", (240, 350), (40, 30), lambda: direct([0,1]))
 main_ui_manager.add_button("Select", (750, 270), (50,20), lambda: picks(0)) # lambda Function: This allows you to pass a function that will be called later (when the button is clicked) instead of immediately calling picks during the button's creation.
 main_ui_manager.add_button("Select", (750, 320), (50,20), lambda: picks(1))
 main_ui_manager.add_button("Select", (750, 370), (50,20), lambda: picks(2))
+main_ui_manager.add_button("Transmit Readings(End turn)", (297, 125), (405,60), lambda: provide(seltily,seltilx))
 pygame.display.set_caption("FINE")
 
 # Clock
@@ -106,9 +191,11 @@ keyt = medfont.render("Scanner Detecting:", True, white)
 keytt = medfont.render("Dropped Unit:", True, white)
 
 
-def createlabel(cu, y, x):
-    return font.render(cu[y][x][1], True, black)
-
+def createlabel(cu, y, x, col):
+    if not col:
+        return font.render(cu[y][x][1], True, black)
+    else:
+        return font.render(cu[y][x][1], True, white)
 
 # Generate map and tiles
 map = generate_map()
@@ -117,42 +204,58 @@ ranco = locate(map)
 
 # Generate mapin (inner grids for each outer grid cell)
 mapin = []
+thermapin = []
+toppin = []
 for i in range(len(map)):
     row = []
+    trow = []
+    topw = []
     for j in range(len(map[0])):
         row.append(inner(map[i][j]))
+        trow.append(thermapper())
+        topw.append(thermapper())
     mapin.append(row)
+    thermapin.append(trow)
+    toppin.append(topw)
 
 outer_tile_grid = [
-    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullryg[map[i][j][0]], createlabel(map, i, j)) for j in range(cols)]
+    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullryg[map[i][j][0]], createlabel(map, i, j, False)) for j in range(cols)]
     for i in range(rows) #DECLAN IS NOT ENTIRELY SURE HOW THIS WORKS
 ]
 
 
 # State variables
-nom = 1
-tn = 1
+moves = 4
+faction = 1
 runner = True
 dispin = False
-seltily, seltilx = 0, 0
+view = [True, False, False]
+global seltily, seltilx
+seltily, seltilx = -1, -1
 current_inner_grid = []
+current_intherm_grid = []
+current_intop_grid = []
 
 # Render text
 hov = "helo"
 hovtext = font.render(hov, True, white) # middle is antialias
 title = font.render("Carrier Info", True, white)
+cert = medfont.render("Belief Position:", True, white)
 
 def update_inner_grid(y, x):
-    """Generate the inner grid for the selected outer cell based on its value."""
-    global current_inner_grid
-    inner_data = mapin[y][x]  # Retrieve the inner grid data for the selected cell
-    current_inner_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j), bsprite[inner_data[i][j][0]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))] # TEMPORARY, for show with the friendly
+    global current_inner_grid, current_intherm_grid, current_intop_grid
+    inner_data = mapin[y][x] # Retrieve the inner motion grid data for the selected cell
+    intherm_data = thermapin[y][x]
+    intop_data = toppin[y][x]
+    print("vassoj", inner_data)
+    current_inner_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j, False),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))] # TEMPORARY, for show with the friendly
+    current_intherm_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,bgyor[intherm_data[i][j][0]], createlabel(intherm_data, i, j, False),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
+    current_intop_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,blues[intop_data[i][j][0]], createlabel(intop_data, i, j, True),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
+
 
 #OVERWORLD STAGES
-freechoose = True
 chosen = [0,0]
-
-
+certain = ""
 
 # Main loop
 while runner:
@@ -165,7 +268,7 @@ while runner:
         if event.type == pygame.QUIT:
             runner = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left mouse button
-            if not dispin and freechoose:
+            if not dispin:
                 # Check if a cell on the outer grid is clicked
                 for i in range(len(outer_tile_grid)):
                     for j in range(len(outer_tile_grid[i])):
@@ -174,7 +277,6 @@ while runner:
                             seltily, seltilx = i, j
                             chosen[0],chosen[1] = i,j
                             dispin = True
-                            freechoose = False
                             update_inner_grid(seltily, seltilx)
                             break
             else:
@@ -183,18 +285,15 @@ while runner:
                         for i in range(len(current_inner_grid)):
                             for j in range(len(current_inner_grid[i])):
                                 tile = current_inner_grid[i][j]
-                                if tile.x <= event.pos[0] <= tile.x + tile.wi and tile.y <= event.pos[
-                                    1] <= tile.y + tile.hi:
+                                if tile.x <= event.pos[0] <= tile.x + tile.wi and tile.y <= event.pos[1] <= tile.y + tile.hi:
                                     print(f"Clicked inner cell at ({i}, {j})")
                                     curs = -1
                                     for h in range(len(pick)):
                                         if pick[h]:
                                             curs = h
-                                            print("curs ", curs)
-                                    if curs !=  -1 and active[curs][1] > 0:
-                                        print(event.pos[0])
-                                        droptroop(curs, seltily, seltilx, i, j)
-                                        update_inner_grid(seltily, seltilx)
+                                        if curs !=  -1 and active[curs][1] > 0:
+                                            droptroop(curs, seltily, seltilx, i, j)
+                                            update_inner_grid(seltily, seltilx)
                                     break
         inner_ui_manager.process_events(event)
         main_ui_manager.process_events(event)
@@ -202,12 +301,14 @@ while runner:
     # Clear screen
     screen.fill(gray)
 
-    # Draw key
-    Key(screen, keyt, keytt)
-
     # Draw UI
     pygame.draw.rect(screen, black, (290, 190, 420, 420))
     pygame.draw.rect(screen, (200, 0, 0), (180, 190, 110, 420))
+
+    # Draw key
+    certaintext = font.render(str(certain), True, white)
+
+    Key(screen, keyt, keytt, cert, certaintext)
 
     if not dispin:
         # Display outer grid
@@ -225,25 +326,55 @@ while runner:
                     tile.hovanim(screen)
                 else:
                     tile.color = dullryg[map[i][j][0]]
+        certain = ""
 
 
     else:
-        # Display current inner grid
-        pygame.draw.rect(screen, black, (180, 495, 110, 30))
-        for row in current_inner_grid:
-            for tile in row:
-                tile.show(screen)
-        # Highlight cell under mouse
-        for i in range(len(current_inner_grid)):
-            for j in range(len(current_inner_grid[i])):
-                tile = current_inner_grid[i][j]
-                if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
-                    hov = f"IN ({seltilx},{abs(seltily -3)}),({j}, {abs(i - 2)})"
-                    tile.hovanim(screen)
-        if freechoose:
-            # Update and Draw UI
-            inner_ui_manager.update(time_delta)
-            inner_ui_manager.draw(screen)
+        inner_ui_manager.update(time_delta)
+        inner_ui_manager.draw(screen)
+
+        if view[0]:
+            # Display current inner grid
+            pygame.draw.rect(screen, black, (180, 495, 110, 30))
+            for row in current_inner_grid:
+                for tile in row:
+                    tile.show(screen)
+            # Highlight cell under mouse
+            for i in range(len(current_inner_grid)):
+                for j in range(len(current_inner_grid[i])):
+                    tile = current_inner_grid[i][j]
+                    if tile.x <= mox <= tile.x + tile.wi and tile.y <= moy <= tile.y + tile.hi:
+                        hov = f"IN ({seltilx},{abs(seltily -3)}),({j}, {abs(i - 2)})"
+                        certain = str(possibleread(seltily, seltilx, i, j))
+                        tile.hovanim(screen)
+        elif view[2]:
+            # Display current inner grid
+            pygame.draw.rect(screen, black, (180, 495, 110, 30))
+            for r in current_intherm_grid:
+                for th in r:
+                    th.show(screen)
+            # Highlight cell under mouse
+            for i in range(len(current_intherm_grid)):
+                for j in range(len(current_intherm_grid[i])):
+                    th = current_intherm_grid[i][j]
+                    if th.x <= mox <= th.x + th.wi and th.y <= moy <= th.y + th.hi:
+                        hov = f"IN ({seltilx},{abs(seltily - 3)}),({j}, {abs(i - 2)})"
+                        certain = str(possibleread(seltily, seltilx, i, j))
+                        th.hovanim(screen)
+        elif view[1]:
+            # Display current inner grid
+            pygame.draw.rect(screen, black, (180, 495, 110, 30))
+            for f in current_intop_grid:
+                for gh in f:
+                    gh.show(screen)
+            # Highlight cell under mouse
+            for i in range(len(current_intop_grid)):
+                for j in range(len(current_intop_grid[i])):
+                    th = current_intop_grid[i][j]
+                    if th.x <= mox <= th.x + th.wi and th.y <= moy <= th.y + th.hi:
+                        hov = f"IN ({seltilx},{abs(seltily -3)}),({j}, {abs(i - 2)})"
+                        certain = str(possibleread(seltily, seltilx, i, j))
+                        th.hovanim(screen)
 
     # Hover Text
     if hov:  # Only render if hov is not empty
@@ -259,10 +390,10 @@ while runner:
 
     # Turn display
     wt = ["Enemies'", "Friendlies'"]
-    turn = font.render((wt[tn] + " turn:"), True, white)
-    nomt = font.render(("Moves " + str(nom)), True, white)
+    tur = font.render((wt[faction] + " turn:"), True, white)
+    nomt = font.render(("Moves " + str(moves)), True, white)
 
-    turnBanner(screen, turn, nomt)
+    turnBanner(screen, tur, nomt)
     Carrier(screen, title, slot1, slot2, slot3)
 
     main_ui_manager.update(time_delta)
