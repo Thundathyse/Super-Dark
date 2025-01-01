@@ -3,12 +3,12 @@ def find(map, y, x, dc, g):
 
 def movement(map, speed, dir):
     posmov = [.25, .5, .25]
-    movmap = [[[0 for _ in range(3)] for _ in range(3)] for _ in range(3)]
+    movmap = [[[0 for _ in range(3)] for _ in range(4)] for _ in range(4)]
     v = [dir[0] * speed, dir[1] * speed]
     for i in range(len(map)):
         for j in range(len(map[i])):
             addval = [0 for _ in range(3)]  # added values list
-            if (v[0] > v[1]):
+            if v[0] > v[1]:
                 dc = v[0]
             else:
                 dc = v[1]
@@ -33,11 +33,14 @@ def movement(map, speed, dir):
         for b in range(len(movmap[v])):
             movmap[v][b] = sum(movmap[v][b])
 
-    return movmap,
+    return movmap
 
 def truemove(speed, dir, loc):
     v = [dir[0] * speed, dir[1] * speed]
-    loc[0] = ((loc[0] - v[0]) % 3)
-    loc[1] = ((loc[1] - v[1]) % 3)
+    print(loc, "og")
+    print(v, "lnsa")
+    print(((loc[0] - v[0]) % 4), "jog")
+    loc[0] = ((loc[0] - v[0]) % 4)
+    loc[1] = ((loc[1] - v[1]) % 4)
     print(loc, "loc")
     return loc

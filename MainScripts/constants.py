@@ -3,7 +3,7 @@ width, height = 1000, 1000
 rows, cols = 4, 4
 cell_size = 100
 intr, intc = 3, 3
-insize = 133
+insize = 100
 
 # Colors
 white = (255, 255, 255)

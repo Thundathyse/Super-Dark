@@ -55,38 +55,33 @@ def emp(size):
         mapper.append(row)
     return mapper
 
-def locate(map):
-    genco = [random.randint(0,3),random.randint(0,3)]
-    return genco
-
 def lowtrun():
     count = 0
     inmap = []
+    choices = list(inthreatlevel.keys())
+    prob = [.5,.3,.19,.01]
 
-    for i in range(3):
+    for i in range(4):
         row = []
-        for j in range(3):
+        for j in range(4):
             value = []
-            if count < 5:
-                value.append(random.randint(0, 2))
-                if value[0] == 1:
-                    count += 1
-            else:
-                value.append(random.randint(0, 0))
+            value.append(random.choices(choices, prob)[0])
             value.append(inthreatlevel.get(value[0]))
             value.append(0)
             value.append(0)
             row.append(value)
         inmap.append(row)
+
     return inmap
 
 def medtrun():
     count = 0
     inmap = []
+    choices = list(inthreatlevel.keys())
 
-    for i in range(3):
+    for i in range(4):
         row = []
-        for j in range(3):
+        for j in range(4):
             value = []
             if count < 8:
                 value.append(random.randint(0, 3))
@@ -104,10 +99,11 @@ def medtrun():
 def hightrun():
     count = 0
     inmap = []
+    choices = list(inthreatlevel.keys())
 
-    for i in range(3):
+    for i in range(4):
         row = []
-        for j in range(3):
+        for j in range(4):
             value = []
             if count < 8:
                 value.append(random.randint(1, 3))
@@ -126,9 +122,9 @@ def thermrun():
     count = 0
     thermap = []
 
-    for i in range(3):
+    for i in range(4):
         row = []
-        for j in range(3):
+        for j in range(4):
             value = []
             if count < 4:
                 value.append(random.randint(0, 4))

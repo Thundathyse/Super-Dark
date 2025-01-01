@@ -123,29 +123,33 @@ def toggle(ooto):
 
 def direct(val):
     lt = ow(seltily, seltilx)
-    for u in range(len(lt)):
-        allunits[seltily][seltilx][lt[u][0]][lt[u][1]].belmap = movement(mapin[seltily][seltilx], allunits[seltily][seltilx][lt[u][0]][lt[u][1]].sp, val)
-        nloc = truemove(allunits[seltily][seltilx][lt[u][0]][lt[u][1]].sp, val, [lt[u][0], lt[u][1]])
-        mapin[seltily][seltilx][nloc[0]][nloc[1]][2] = allunits[seltily][seltilx][lt[u][0]][lt[u][1]].ind
-        mapin[seltily][seltilx][lt[u][0]][lt[u][1]][2] = 0
-        allunits[seltily][seltilx][nloc[0]][nloc[1]] = allunits[seltily][seltilx][lt[u][0]][lt[u][1]]
-        allunits[seltily][seltilx][lt[u][0]][lt[u][1]] = [0]
-        update_inner_grid(seltily,seltilx)
-        print(ow(seltily, seltilx))
-    Turn(2)
+    if lt:
+        for u in range(len(lt)):
+            allunits[seltily][seltilx][lt[u][0]][lt[u][1]].belmap = movement(mapin[seltily][seltilx], allunits[seltily][seltilx][lt[u][0]][lt[u][1]].sp, val)
+            nloc = truemove(allunits[seltily][seltilx][lt[u][0]][lt[u][1]].sp, val, [lt[u][0], lt[u][1]])
+            mapin[seltily][seltilx][nloc[0]][nloc[1]][2] = allunits[seltily][seltilx][lt[u][0]][lt[u][1]].ind
+            mapin[seltily][seltilx][lt[u][0]][lt[u][1]][2] = 0
+            allunits[seltily][seltilx][nloc[0]][nloc[1]] = allunits[seltily][seltilx][lt[u][0]][lt[u][1]]
+            allunits[seltily][seltilx][lt[u][0]][lt[u][1]] = [0]
+            update_inner_grid(seltily,seltilx)
+            print(ow(seltily, seltilx))
+            Turn(2)
+    else:
+        print("nah")
 
 allunits = emp(4)
 for i in range(len(allunits)):
     for j in range(len(allunits[i])):
-        allunits[i][j] = emp(3)
+        allunits[i][j] = emp(4)
 
 def droptroop(num, outy, outx, iny, inx): #w means "whose turn?"
     if (pick[num]) and active[num][2] > 0 and mapin[outy][outx][iny][inx][2] == 0:
         active[num][2] -= 1
         pick[num] = False
-        mapin[outy][outx][iny][inx][2] = active[num][1]
+        mapin[outy][outx][iny][inx][2] = active[num][4] # speed
         Turn(1)
         allunits[outy][outx][iny][inx] = (brain(outx, outy, -1, -1, False, [0], num + 1))
+        update_inner_grid(outy, outx)
     else:
         print("No")
 
@@ -171,9 +175,9 @@ main_ui_manager = UIManager((width, height))
 inner_ui_manager.add_button("Back", (185, 200), (100, 50), returnover)
 inner_ui_manager.add_button("View", (185, 260), (100, 50), switchview)
 inner_ui_manager.add_button("North", (210, 320), (45, 30), lambda: direct([1,0]))
-inner_ui_manager.add_button("West", (185, 350), (40, 30), lambda: direct([0,-1]))
+inner_ui_manager.add_button("West", (185, 350), (40, 30), lambda: direct([0,1]))
 inner_ui_manager.add_button("South", (210, 380), (45, 30), lambda: direct([-1,0]))
-inner_ui_manager.add_button("East", (240, 350), (40, 30), lambda: direct([0,1]))
+inner_ui_manager.add_button("East", (240, 350), (40, 30), lambda: direct([0,-1]))
 main_ui_manager.add_button("Select", (750, 270), (50,20), lambda: picks(0)) # lambda Function: This allows you to pass a function that will be called later (when the button is clicked) instead of immediately calling picks during the button's creation.
 main_ui_manager.add_button("Select", (750, 320), (50,20), lambda: picks(1))
 main_ui_manager.add_button("Select", (750, 370), (50,20), lambda: picks(2))
@@ -190,8 +194,7 @@ medfont = pygame.font.Font(None, 18)
 keyt = medfont.render("Scanner Detecting:", True, white)
 keytt = medfont.render("Dropped Unit:", True, white)
 
-
-def createlabel(cu, y, x, col):
+def label(cu, y, x, col):
     if not col:
         return font.render(cu[y][x][1], True, black)
     else:
@@ -200,7 +203,6 @@ def createlabel(cu, y, x, col):
 # Generate map and tiles
 map = generate_map()
 belief = initial(map)
-ranco = locate(map)
 
 # Generate mapin (inner grids for each outer grid cell)
 mapin = []
@@ -219,7 +221,7 @@ for i in range(len(map)):
     toppin.append(topw)
 
 outer_tile_grid = [
-    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullryg[map[i][j][0]], createlabel(map, i, j, False)) for j in range(cols)]
+    [Tile((j * cell_size) + 300, (i * cell_size) + 200, cell_size, cell_size, dullryg[map[i][j][0]], label(map, i, j, False)) for j in range(cols)]
     for i in range(rows) #DECLAN IS NOT ENTIRELY SURE HOW THIS WORKS
 ]
 
@@ -248,9 +250,9 @@ def update_inner_grid(y, x):
     intherm_data = thermapin[y][x]
     intop_data = toppin[y][x]
     print("vassoj", inner_data)
-    current_inner_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], createlabel(inner_data, i, j, False),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))] # TEMPORARY, for show with the friendly
-    current_intherm_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,bgyor[intherm_data[i][j][0]], createlabel(intherm_data, i, j, False),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
-    current_intop_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,blues[intop_data[i][j][0]], createlabel(intop_data, i, j, True),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
+    current_inner_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,woyr[inner_data[i][j][0]], label(inner_data, i, j, False),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))] # TEMPORARY, for show with the friendly
+    current_intherm_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,bgyor[intherm_data[i][j][0]], label(intherm_data, i, j, False),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
+    current_intop_grid = [[inTile((j * insize) + 300,(i * insize) + 200,insize,insize,blues[intop_data[i][j][0]], label(intop_data, i, j, True),bsprite[inner_data[i][j][3]],fsprite[inner_data[i][j][2]]) for j in range(len(inner_data[0]))]for i in range(len(inner_data))]
 
 
 #OVERWORLD STAGES
