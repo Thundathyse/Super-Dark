@@ -30,9 +30,9 @@ class brain:
 
         init = 0
 
-        for i in range(len(self.belmap)):
-            for j in range(len(self.belmap[i])):
-                can[init][0] = self.belmap[i][j]
+        for i in range(9):
+            for j in range(3):
+                can[init][0] = self.belmap[i%3][j]
                 can[init][1] = i
                 can[init][2] = j
 

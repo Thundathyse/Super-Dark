@@ -46,7 +46,7 @@ def provide(gridy, gridx):
             if moves > 2:
                 topnblif = (topdetect(toploc,toploc[li[i][0]][li[i][1]][0], blif))
                 print("Post Baye's topographical belief map ", nblif, ". \n----")
-        tnblif,topnblif = empty(3,3),empty(3,3)
+        tnblif,topnblif = empty(4,4),empty(4,4)
 
         fina = (combo(nblif, tnblif, topnblif))
         print("Post combination belief map ", fina, ". \n----")
