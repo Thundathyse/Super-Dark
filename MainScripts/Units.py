@@ -1,7 +1,7 @@
 unitdict = {
-    1:["Infantry", 1, 10, 10, 1],
-    2:["Mech", 1, 10, 20, 2],
-    3:["Tank", 1, 10, 30, 3]
+    1:["Infantry", 3, 10, 10, 1],
+    2:["Mech", 10, 10, 20, 2],
+    3:["Tank", 7, 10, 30, 3]
 }
 
 own = []
@@ -26,17 +26,25 @@ class brain:
         self.belmap = nmap
         self.h = False
 
-        can = [[0 for _ in range(3)] for _ in range(9)]
+        can = [[0 for _ in range(3)] for _ in range(16)]
 
         init = 0
 
-        for i in range(9):
-            for j in range(3):
-                can[init][0] = self.belmap[i%3][j]
+        # for i in range(16):
+        #     for j in range(3):
+        #         can[init][0] = self.belmap[i%4][j]
+        #         can[init][1] = i
+        #         can[init][2] = j
+        #         init += 1
+
+        for i in range(len(self.belmap)):
+            for j in range(len(self.belmap[i])):
+                can[init][0] = self.belmap[i][j]
                 can[init][1] = i
                 can[init][2] = j
 
                 init += 1
+
 
         n = len(can)
         for i in range(n - 1):
@@ -55,3 +63,4 @@ class brain:
 
         print(can, "can")
         return self.bx, self.by
+

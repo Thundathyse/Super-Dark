@@ -1,6 +1,6 @@
 import pygame
 from pygame import RESIZABLE
-
+import random
 from constants import *
 from MoveLogic import *
 from Graphics import Tile, inTile
@@ -360,7 +360,7 @@ while runner:
                 for j in range(len(current_intherm_grid[i])):
                     th = current_intherm_grid[i][j]
                     if th.x <= mox <= th.x + th.wi and th.y <= moy <= th.y + th.hi:
-                        hov = f"IN ({seltilx},{abs(seltily - 3)}),({j}, {abs(i - 2)})"
+                        hov = f"IN ({seltilx},{abs(seltily - 3)}),({j}, {abs(i - 1)})"
                         certain = str(possibleread(seltily, seltilx, i, j))
                         th.hovanim(screen)
         elif view[1]:
