@@ -7,7 +7,7 @@ sfa -= sfb
 print("Sensor Accuracy: ", ss, "| Sensor Fail (rate) Alpha: ", sfa, "| Sensor Fail (rate) Beta: ", sfb, "\n----")
 belief = []
 
-def initial(map):
+def calculate_initial_belief(map):
     belief = [[0 for i in range(len(map))] for j in range(len(map[0]))] # INITIAL BELIEF
     
     for i in range(len(map)):
@@ -17,7 +17,7 @@ def initial(map):
     print(belief)
     return belief
 
-def detect(map,reading, belly):
+def update_motion_belief(map,reading, belly):
     for i in range(len(map)):
         for j in range(len(map[i])):
             if map[i][j][0] == reading:
@@ -37,7 +37,7 @@ def detect(map,reading, belly):
 
     return belly
 
-def thermdetect(map,reading, belly):
+def update_thermal_belief(map,reading, belly):
     sfe, sfk, sfg = (sfb/3 + sfb/6), sfb/6, ss/3
     print("new sensor fails", sfe, sfk, sfg)
     for i in range(len(map)):
@@ -61,7 +61,7 @@ def thermdetect(map,reading, belly):
 
     return belly
 
-def topdetect(map,reading, belly):
+def update_topo_belief(map,reading, belly):
     sfc, sfd = (sfb/2 + sfb/ 4), sfb/4
     print("new sensor fails", sfc, sfd)
     for i in range(len(map)):
@@ -85,7 +85,7 @@ def topdetect(map,reading, belly):
 
     return belly
 
-def combo(red, yel, blu):
+def combine_beliefs(red, yel, blu):
     result = [[0 for _ in range(len(red[0]))] for _ in range(len(red))]
 
     for i in range(len(red)):
